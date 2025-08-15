@@ -10,6 +10,9 @@
 
 Raycast extension to search and favorite npm packages
 
+</div>
+
+
 > [!IMPORTANT]
 > This extension is forked from the original [Search npm Packages](https://www.raycast.com/mrmartineau/search-npm)
 
@@ -38,6 +41,8 @@ pnpm install
 pnpm run dev
 ```
 
+<br/>
+<br/>
 
 > [!NOTE]
 > The following is the original README for the Search npm Packages extension.
