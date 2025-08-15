@@ -129,12 +129,22 @@
     {
       "name": "showLinkToSearchResultsInListView",
       "type": "checkbox",
-      "label": "Show link in list view",
+      "label": "Show Link in List View",
       "title": "Show link to npmjs.com results in list view",
       "description": "Show link to npmjs.com search results in list view",
       "required": false,
       "value": true,
       "default": true
+    },
+    {
+      "name": "searchResultSize",
+      "type": "textfield",
+      "title": "Search Result Size",
+      "description": "How many results to fetch from npm registry per search",
+      "required": false,
+      "placeholder": "20",
+      "default": "20",
+      "value": "20"
     }
   ],
   "scripts": {

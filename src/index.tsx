@@ -18,15 +18,15 @@ import { useFavorites } from './hooks/useFavorites'
 import { addToHistory, getHistory } from './utils/history-storage'
 
 // const API_PATH = 'https://www.npmjs.com/search/suggestions?q='
-const API_PATH = 'https://registry.npmjs.org/-/v1/search?size=20&text='
+const API_PATH = 'https://registry.npmjs.org/-/v1/search'
 export default function PackageList() {
   const [searchTerm, setSearchTerm] = useState<string>('')
   const [history, setHistory] = useCachedState<HistoryItem[]>('history', [])
   const [favorites, fetchFavorites] = useFavorites()
-  const { showLinkToSearchResultsInListView } = getPreferenceValues<ExtensionPreferences>()
+  const { showLinkToSearchResultsInListView, searchResultSize } = getPreferenceValues<ExtensionPreferences>()
 
   const { isLoading, data, revalidate } = useFetch<PackageDetail[]>(
-    `${API_PATH}${searchTerm.replace(/\s/g, '+')}`,
+    `${API_PATH}?size=${searchResultSize}&text=${searchTerm.replace(/\s/g, '+')}`,
     {
       execute: !!searchTerm,
       onError: (error) => {
@@ -129,46 +129,47 @@ export default function PackageList() {
           )
         : (
             <>
-              {history.length > 0 ? (
-                <>
-                  {/* 分组展示历史记录 */}
-                  <List.Section title="Package History">
-                    {history.filter(item => item.type === 'package').map((item) => {
-                      if (item?.packageDetail?.package.name) {
-                        const pkgName = item.packageDetail.package.name
-                        return (
-                          <PackageListItem
-                            key={`history-${pkgName}`}
-                            result={item.packageDetail}
-                            searchTerm={searchTerm}
+              {history.length > 0
+                ? (
+                    <>
+                      <List.Section title="Package History">
+                        {history.filter(item => item.type === 'package').map((item) => {
+                          if (item?.packageDetail?.package.name) {
+                            const pkgName = item.packageDetail.package.name
+                            return (
+                              <PackageListItem
+                                key={`history-${pkgName}`}
+                                result={item.packageDetail}
+                                searchTerm={searchTerm}
+                                setHistory={setHistory}
+                                isFavorited={
+                                  favorites.findIndex(
+                                    fave => fave.package.name === pkgName,
+                                  ) !== -1
+                                }
+                                handleFaveChange={fetchFavorites}
+                                isHistoryItem={true}
+                              />
+                            )
+                          }
+                          return null
+                        })}
+                      </List.Section>
+                      <List.Section title="Search History">
+                        {history.filter(item => item.type === 'search').map(item => (
+                          <HistoryListItem
+                            key={`history-${item.term}-${item.type}`}
+                            item={item}
                             setHistory={setHistory}
-                            isFavorited={
-                              favorites.findIndex(
-                                fave => fave.package.name === pkgName,
-                              ) !== -1
-                            }
-                            handleFaveChange={fetchFavorites}
-                            isHistoryItem={true}
+                            setSearchTerm={setSearchTerm}
                           />
-                        )
-                      }
-                      return null
-                    })}
-                  </List.Section>
-                  <List.Section title="Search History">
-                    {history.filter(item => item.type === 'search').map(item => (
-                      <HistoryListItem
-                        key={`history-${item.term}-${item.type}`}
-                        item={item}
-                        setHistory={setHistory}
-                        setSearchTerm={setSearchTerm}
-                      />
-                    ))}
-                  </List.Section>
-                </>
-              ) : (
-                <List.EmptyView title="Type something to get started" />
-              )}
+                        ))}
+                      </List.Section>
+                    </>
+                  )
+                : (
+                    <List.EmptyView title="Type something to get started" />
+                  )}
             </>
           )}
     </List>
