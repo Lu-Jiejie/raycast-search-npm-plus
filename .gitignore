@@ -11,3 +11,4 @@ compiled_raycast_swift
 .DS_Store
 
 dist
+temp.json

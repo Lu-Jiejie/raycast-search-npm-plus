@@ -1,7 +1,16 @@
-export type NpmFetchResponse = Package[]
+export interface PackageDetail {
+  downloads: {
+    monthly: number
+    weekly: number
+  }
+  dependents: number
+  searchScore: number
+  package: PackageInfo
+}
 
-export interface Package {
+export interface PackageInfo {
   name: string
+  sanitized_name: string
   scope: string
   version: string
   description: string
@@ -11,6 +20,7 @@ export interface Package {
   publisher: Publisher
   maintainers: Maintainer[]
   keywords?: string[]
+  license: string
 }
 
 export interface Links {

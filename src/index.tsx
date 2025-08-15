@@ -1,31 +1,32 @@
+import type { PackageDetail } from './model/npmResponse.model'
+import type { HistoryItem } from './utils/history-storage'
 import {
+  Action,
+  ActionPanel,
+  getPreferenceValues,
+  Icon,
   List,
   showToast,
   Toast,
-  Icon,
-  ActionPanel,
-  Action,
-  getPreferenceValues,
 } from '@raycast/api'
-import { useFetch, useCachedState } from '@raycast/utils'
-import { useState, useEffect } from 'react'
-import { PackageListItem } from './components/PackagListItem'
-import { addToHistory, getHistory } from './utils/history-storage'
-import { HistoryListItem } from './components/HistoryListItem'
+import { useCachedState, useFetch } from '@raycast/utils'
+import { useEffect, useState } from 'react'
 import { useDebouncedCallback } from 'use-debounce'
-import type { NpmFetchResponse } from './model/npmResponse.model'
-import type { HistoryItem } from './utils/history-storage'
+import { HistoryListItem } from './components/HistoryListItem'
+import { PackageListItem } from './components/PackagListItem'
 import { useFavorites } from './hooks/useFavorites'
+import { addToHistory, getHistory } from './utils/history-storage'
 
-const API_PATH = 'https://www.npmjs.com/search/suggestions?q='
+// const API_PATH = 'https://www.npmjs.com/search/suggestions?q='
+const API_PATH = 'https://registry.npmjs.org/-/v1/search?size=20&text='
 export default function PackageList() {
   const [searchTerm, setSearchTerm] = useState<string>('')
   const [history, setHistory] = useCachedState<HistoryItem[]>('history', [])
   const [favorites, fetchFavorites] = useFavorites()
-  const { historyCount, showLinkToSearchResultsInListView } =
-    getPreferenceValues<ExtensionPreferences>()
+  const { historyCount, showLinkToSearchResultsInListView }
+    = getPreferenceValues<ExtensionPreferences>()
 
-  const { isLoading, data, revalidate } = useFetch<NpmFetchResponse>(
+  const { isLoading, data, revalidate } = useFetch<PackageDetail[]>(
     `${API_PATH}${searchTerm.replace(/\s/g, '+')}`,
     {
       execute: !!searchTerm,
@@ -36,6 +37,7 @@ export default function PackageList() {
         }
       },
       keepPreviousData: true,
+      parseResponse: async response => (await response.json()).objects,
     },
   )
 
@@ -49,9 +51,16 @@ export default function PackageList() {
   )
 
   useEffect(() => {
+    if (data) {
+      // console.log(data[0])
+    }
+  }, [data])
+
+  useEffect(() => {
     if (searchTerm) {
       debounced(searchTerm)
-    } else {
+    }
+    else {
       revalidate()
     }
   }, [searchTerm])
@@ -71,89 +80,99 @@ export default function PackageList() {
       searchBarPlaceholder={`Search packages, like "promises"…`}
       onSearchTextChange={setSearchTerm}
     >
-      {searchTerm ? (
-        <>
-          {data?.length ? (
+      {searchTerm
+        ? (
             <>
-              {showLinkToSearchResultsInListView ? (
-                <List.Item
-                  title={`View search results for "${searchTerm}" on npmjs.com`}
-                  icon={Icon.MagnifyingGlass}
-                  actions={
-                    <ActionPanel>
-                      <Action.OpenInBrowser
-                        url={`https://www.npmjs.com/search?q=${searchTerm}`}
-                        title="View npm Search Results"
-                      />
-                    </ActionPanel>
-                  }
-                />
-              ) : null}
-              <List.Section title="Results" subtitle={data.length.toString()}>
-                {data.map((result) => {
-                  if (!result.name) {
-                    return null
-                  }
-                  return (
-                    <PackageListItem
-                      key={`search-${result.name}`}
-                      result={result}
-                      searchTerm={searchTerm}
-                      setHistory={setHistory}
-                      isFavorited={
-                        favorites.findIndex(
-                          (item) => item.name === result.name,
-                        ) !== -1
-                      }
-                      handleFaveChange={fetchFavorites}
-                    />
+              {data?.length
+                ? (
+                    <>
+                      {showLinkToSearchResultsInListView
+                        ? (
+                            <List.Item
+                              title={`View search results for "${searchTerm}" on npmjs.com`}
+                              icon={Icon.MagnifyingGlass}
+                              actions={(
+                                <ActionPanel>
+                                  <Action.OpenInBrowser
+                                    url={`https://www.npmjs.com/search?q=${searchTerm}`}
+                                    title="View npm Search Results"
+                                  />
+                                </ActionPanel>
+                              )}
+                            />
+                          )
+                        : null}
+                      <List.Section title="Results" subtitle={data.length.toString()}>
+                        {data.map((result) => {
+                          if (!result.package.name) {
+                            return null
+                          }
+                          return (
+                            <PackageListItem
+                              key={`search-${result.package.name}`}
+                              result={result}
+                              searchTerm={searchTerm}
+                              setHistory={setHistory}
+                              isFavorited={
+                                favorites.findIndex(
+                                  item => item.package.name === result.package.name,
+                                ) !== -1
+                              }
+                              handleFaveChange={fetchFavorites}
+                            />
+                          )
+                        })}
+                      </List.Section>
+                    </>
                   )
-                })}
-              </List.Section>
+                : null}
             </>
-          ) : null}
-        </>
-      ) : (
-        <>
-          {Number(historyCount) > 0 ? (
-            history.length ? (
-              <List.Section title="History">
-                {history.map((item) => {
-                  if (item.type === 'package' && item?.package?.name) {
-                    const pkgName = item.package.name
-                    return (
-                      <PackageListItem
-                        key={`history-${pkgName}`}
-                        result={item.package}
-                        searchTerm={searchTerm}
-                        setHistory={setHistory}
-                        isFavorited={
-                          favorites.findIndex(
-                            (fave) => fave.name === pkgName,
-                          ) !== -1
-                        }
-                        handleFaveChange={fetchFavorites}
-                        isHistoryItem={true}
-                      />
-                    )
-                  }
+          )
+        : (
+            <>
+              {Number(historyCount) > 0
+                ? (
+                    history.length
+                      ? (
+                          <List.Section title="History">
+                            {history.map((item) => {
+                              if (item.type === 'package' && item?.packageDetail?.package.name) {
+                                const pkgName = item.packageDetail.package.name
+                                return (
+                                  <PackageListItem
+                                    key={`history-${pkgName}`}
+                                    result={item.packageDetail}
+                                    searchTerm={searchTerm}
+                                    setHistory={setHistory}
+                                    isFavorited={
+                                      favorites.findIndex(
+                                        fave => fave.package.name === pkgName,
+                                      ) !== -1
+                                    }
+                                    handleFaveChange={fetchFavorites}
+                                    isHistoryItem={true}
+                                  />
+                                )
+                              }
 
-                  return (
-                    <HistoryListItem
-                      key={`history-${item.term}-${item.type}`}
-                      item={item}
-                      setHistory={setHistory}
-                      setSearchTerm={setSearchTerm}
-                    />
+                              return (
+                                <HistoryListItem
+                                  key={`history-${item.term}-${item.type}`}
+                                  item={item}
+                                  setHistory={setHistory}
+                                  setSearchTerm={setSearchTerm}
+                                />
+                              )
+                            })}
+                          </List.Section>
+                        )
+                      : (
+                          <List.EmptyView title="Type something to get started" />
+                        )
                   )
-                })}
-              </List.Section>
-            ) : (
-              <List.EmptyView title="Type something to get started" />
-            )
-          ) : null}
-        </>
-      )}
+                : null}
+            </>
+          )}
     </List>
   )
 }

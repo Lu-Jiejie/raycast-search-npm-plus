@@ -1,6 +1,6 @@
+import type { PackageDetail } from '../model/npmResponse.model'
 import { getPreferenceValues, LocalStorage } from '@raycast/api'
 import dedupe from 'dedupe'
-import type { Package } from '../model/npmResponse.model'
 
 const LOCAL_STORAGE_KEY = 'npm-history'
 
@@ -9,12 +9,12 @@ export interface HistoryItem {
   term: string
   type: HistoryType
   description?: string
-  package?: Package
+  packageDetail?: PackageDetail
 }
-export const getHistory = async (): Promise<HistoryItem[]> => {
+export async function getHistory(): Promise<HistoryItem[]> {
   const { historyCount } = getPreferenceValues<ExtensionPreferences>()
-  const historyFromStorage =
-    await LocalStorage.getItem<string>(LOCAL_STORAGE_KEY)
+  const historyFromStorage
+    = await LocalStorage.getItem<string>(LOCAL_STORAGE_KEY)
   const history: HistoryItem[] = JSON.parse(historyFromStorage ?? '[]')
   const historyWithoutDuplicates = dedupe(history)
 
@@ -25,7 +25,7 @@ export const getHistory = async (): Promise<HistoryItem[]> => {
   return historyWithoutDuplicates
 }
 
-export const addToHistory = async (item: HistoryItem) => {
+export async function addToHistory(item: HistoryItem) {
   const { historyCount } = getPreferenceValues<ExtensionPreferences>()
   const history = await getHistory()
   const historyWithNewItem = [item, ...history]
@@ -42,21 +42,19 @@ export const addToHistory = async (item: HistoryItem) => {
   return await getHistory()
 }
 
-const removeMatchingItemFromArray = (
-  arr: HistoryItem[],
-  item: HistoryItem,
-): HistoryItem[] => {
+function removeMatchingItemFromArray(arr: HistoryItem[], item: HistoryItem): HistoryItem[] {
   let i = 0
   while (i < arr.length) {
     if (arr[i].term === item.term && arr[i].type === item.type) {
       arr.splice(i, 1)
-    } else {
+    }
+    else {
       ++i
     }
   }
   return arr
 }
-export const removeItemFromHistory = async (item: HistoryItem) => {
+export async function removeItemFromHistory(item: HistoryItem) {
   const history = await getHistory()
   const updatedHistoryList = removeMatchingItemFromArray(history, item)
   await LocalStorage.setItem(
@@ -66,7 +64,7 @@ export const removeItemFromHistory = async (item: HistoryItem) => {
   return await getHistory()
 }
 
-export const removeAllItemsFromHistory = async () => {
+export async function removeAllItemsFromHistory() {
   await LocalStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify([]))
   return await getHistory()
 }

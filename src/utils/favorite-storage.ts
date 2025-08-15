@@ -1,17 +1,17 @@
 import { LocalStorage } from '@raycast/api'
 import dedupe from 'dedupe'
-import type { Package } from '../model/npmResponse.model'
+import type { PackageDetail } from '../model/npmResponse.model'
 
 const LOCAL_STORAGE_KEY = 'npm-faves'
 
-export const getFavorites = async (): Promise<Package[]> => {
+export const getFavorites = async (): Promise<PackageDetail[]> => {
   const favesFromStorage = await LocalStorage.getItem<string>(LOCAL_STORAGE_KEY)
-  const faves: Package[] = JSON.parse(favesFromStorage ?? '[]')
+  const faves: PackageDetail[] = JSON.parse(favesFromStorage ?? '[]')
   const favesWithoutDuplicates = dedupe(faves)
   return favesWithoutDuplicates
 }
 
-export const addFavorite = async (item: Package) => {
+export const addFavorite = async (item: PackageDetail) => {
   const faves = await getFavorites()
   const favesWithNewItem = [item, ...faves]
   const updatedFavesList = [...new Set(favesWithNewItem)]
@@ -24,9 +24,9 @@ export const addFavorite = async (item: Package) => {
 }
 
 const removeMatchingItemFromArray = (
-  arr: Package[],
-  item: Package,
-): Package[] => {
+  arr: PackageDetail[],
+  item: PackageDetail,
+): PackageDetail[] => {
   let i = 0
   while (i < arr.length) {
     if (arr[i].name === item.name) {
@@ -37,7 +37,7 @@ const removeMatchingItemFromArray = (
   }
   return arr
 }
-export const removeItemFromFavorites = async (item: Package) => {
+export const removeItemFromFavorites = async (item: PackageDetail) => {
   const faves = await getFavorites()
   const updatedFavesList = removeMatchingItemFromArray(faves, item)
   await LocalStorage.setItem(
