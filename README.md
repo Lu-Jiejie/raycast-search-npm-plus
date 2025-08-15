@@ -19,6 +19,7 @@ Raycast extension to search and favorite npm packages
 
 - Refine search list display
 - Separate package and search history
+- Add configuration options for search result size
 
 ## Installation
 
