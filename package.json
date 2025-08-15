@@ -109,13 +109,24 @@
       "value": "openRepository"
     },
     {
-      "name": "historyCount",
+      "name": "packageHistoryCount",
       "type": "textfield",
-      "title": "History Count",
-      "description": "How many items to store in your history",
+      "title": "Package History Count",
+      "description": "How many package items to store in your history",
       "required": false,
-      "default": "30",
-      "value": "30"
+      "placeholder": "20",
+      "default": "20",
+      "value": "20"
+    },
+    {
+      "name": "searchHistoryCount",
+      "type": "textfield",
+      "title": "Search History Count",
+      "description": "How many search items to store in your history",
+      "required": false,
+      "placeholder": "6",
+      "default": "6",
+      "value": "6"
     },
     {
       "name": "showLinkToSearchResultsInListView",

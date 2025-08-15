@@ -42,7 +42,7 @@ export function PackageListItem({
   isViewingFavorites,
   isHistoryItem,
 }: PackageListItemProps): JSX.Element {
-  const { defaultOpenAction, historyCount }
+  const { defaultOpenAction, packageHistoryCount }
     = getPreferenceValues<ExtensionPreferences>()
   const { owner, name, type, repoUrl } = parseRepoUrl(result.package.links?.repository)
   const changelogUrl = getChangeLogUrl(type, owner, name)
@@ -53,7 +53,7 @@ export function PackageListItem({
       type: 'package',
       packageDetail: result,
     })
-    if (Number(historyCount) <= 0)
+    if (Number(packageHistoryCount) <= 0)
       return
     setHistory?.(history)
     showToast(Toast.Style.Success, `Added ${result.package.name} to history`)

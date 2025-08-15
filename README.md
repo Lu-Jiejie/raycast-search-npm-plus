@@ -12,9 +12,13 @@ Raycast extension to search and favorite npm packages
 
 </div>
 
-
 > [!IMPORTANT]
 > This extension is forked from the original [Search npm Packages](https://www.raycast.com/mrmartineau/search-npm)
+
+## Differences from the original
+
+- Refine search list display
+- Separate package and search history
 
 ## Installation
 

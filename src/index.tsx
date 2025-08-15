@@ -23,8 +23,7 @@ export default function PackageList() {
   const [searchTerm, setSearchTerm] = useState<string>('')
   const [history, setHistory] = useCachedState<HistoryItem[]>('history', [])
   const [favorites, fetchFavorites] = useFavorites()
-  const { historyCount, showLinkToSearchResultsInListView }
-    = getPreferenceValues<ExtensionPreferences>()
+  const { showLinkToSearchResultsInListView } = getPreferenceValues<ExtensionPreferences>()
 
   const { isLoading, data, revalidate } = useFetch<PackageDetail[]>(
     `${API_PATH}${searchTerm.replace(/\s/g, '+')}`,
@@ -130,47 +129,46 @@ export default function PackageList() {
           )
         : (
             <>
-              {Number(historyCount) > 0
-                ? (
-                    history.length
-                      ? (
-                          <List.Section title="History">
-                            {history.map((item) => {
-                              if (item.type === 'package' && item?.packageDetail?.package.name) {
-                                const pkgName = item.packageDetail.package.name
-                                return (
-                                  <PackageListItem
-                                    key={`history-${pkgName}`}
-                                    result={item.packageDetail}
-                                    searchTerm={searchTerm}
-                                    setHistory={setHistory}
-                                    isFavorited={
-                                      favorites.findIndex(
-                                        fave => fave.package.name === pkgName,
-                                      ) !== -1
-                                    }
-                                    handleFaveChange={fetchFavorites}
-                                    isHistoryItem={true}
-                                  />
-                                )
-                              }
-
-                              return (
-                                <HistoryListItem
-                                  key={`history-${item.term}-${item.type}`}
-                                  item={item}
-                                  setHistory={setHistory}
-                                  setSearchTerm={setSearchTerm}
-                                />
-                              )
-                            })}
-                          </List.Section>
+              {history.length > 0 ? (
+                <>
+                  {/* 分组展示历史记录 */}
+                  <List.Section title="Package History">
+                    {history.filter(item => item.type === 'package').map((item) => {
+                      if (item?.packageDetail?.package.name) {
+                        const pkgName = item.packageDetail.package.name
+                        return (
+                          <PackageListItem
+                            key={`history-${pkgName}`}
+                            result={item.packageDetail}
+                            searchTerm={searchTerm}
+                            setHistory={setHistory}
+                            isFavorited={
+                              favorites.findIndex(
+                                fave => fave.package.name === pkgName,
+                              ) !== -1
+                            }
+                            handleFaveChange={fetchFavorites}
+                            isHistoryItem={true}
+                          />
                         )
-                      : (
-                          <List.EmptyView title="Type something to get started" />
-                        )
-                  )
-                : null}
+                      }
+                      return null
+                    })}
+                  </List.Section>
+                  <List.Section title="Search History">
+                    {history.filter(item => item.type === 'search').map(item => (
+                      <HistoryListItem
+                        key={`history-${item.term}-${item.type}`}
+                        item={item}
+                        setHistory={setHistory}
+                        setSearchTerm={setSearchTerm}
+                      />
+                    ))}
+                  </List.Section>
+                </>
+              ) : (
+                <List.EmptyView title="Type something to get started" />
+              )}
             </>
           )}
     </List>
