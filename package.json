@@ -22,14 +22,12 @@
     {
       "name": "index",
       "title": "Search Packages",
-      "subtitle": "npm",
       "description": "Search for npm package information. Also view bundlephobia.com cost, the package's README and Snyk vulnerability info",
       "mode": "view"
     },
     {
       "name": "favorites",
       "title": "View Favorites",
-      "subtitle": "npm",
       "description": "View your favorite packages",
       "mode": "view"
     }

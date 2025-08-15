@@ -1,17 +1,17 @@
+import type { PackageDetail } from '../model/npmResponse.model'
 import { LocalStorage } from '@raycast/api'
 import dedupe from 'dedupe'
-import type { PackageDetail } from '../model/npmResponse.model'
 
 const LOCAL_STORAGE_KEY = 'npm-faves'
 
-export const getFavorites = async (): Promise<PackageDetail[]> => {
+export async function getFavorites(): Promise<PackageDetail[]> {
   const favesFromStorage = await LocalStorage.getItem<string>(LOCAL_STORAGE_KEY)
   const faves: PackageDetail[] = JSON.parse(favesFromStorage ?? '[]')
   const favesWithoutDuplicates = dedupe(faves)
   return favesWithoutDuplicates
 }
 
-export const addFavorite = async (item: PackageDetail) => {
+export async function addFavorite(item: PackageDetail) {
   const faves = await getFavorites()
   const favesWithNewItem = [item, ...faves]
   const updatedFavesList = [...new Set(favesWithNewItem)]
@@ -23,21 +23,19 @@ export const addFavorite = async (item: PackageDetail) => {
   return await getFavorites()
 }
 
-const removeMatchingItemFromArray = (
-  arr: PackageDetail[],
-  item: PackageDetail,
-): PackageDetail[] => {
+function removeMatchingItemFromArray(arr: PackageDetail[], item: PackageDetail): PackageDetail[] {
   let i = 0
   while (i < arr.length) {
-    if (arr[i].name === item.name) {
+    if (arr[i].package.name === item.package.name) {
       arr.splice(i, 1)
-    } else {
+    }
+    else {
       ++i
     }
   }
   return arr
 }
-export const removeItemFromFavorites = async (item: PackageDetail) => {
+export async function removeItemFromFavorites(item: PackageDetail) {
   const faves = await getFavorites()
   const updatedFavesList = removeMatchingItemFromArray(faves, item)
   await LocalStorage.setItem(
@@ -47,7 +45,7 @@ export const removeItemFromFavorites = async (item: PackageDetail) => {
   return await getFavorites()
 }
 
-export const removeAllItemsFromFavorites = async () => {
+export async function removeAllItemsFromFavorites() {
   await LocalStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify([]))
   return await getFavorites()
 }
